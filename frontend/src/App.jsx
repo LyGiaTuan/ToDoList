@@ -10,6 +10,7 @@ function App() {
   const taskRef = useRef();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [tableLoading, setTableLoading] = useState(false);
   const [filter, setFilter] = useState({
     statusString: "START",
     sortByTime: true,
@@ -65,31 +66,24 @@ function App() {
     },
   ];
 
-  const getTasks = async () => {
+  const createTask = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:8080/task", {
-        params: filter,
-      });
-      setTasks(res.data);
+      const res = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/task`,
+        task,
+      );
+      setTasks([res.data, ...tasks]);
+      toast("Tạo thành công");
     } catch (ex) {
       toast.error(ex.message);
     }
     setLoading(false);
   };
 
-  const createTask = async () => {
-    try {
-      const res = await axios.post("http://localhost:8080/task", task);
-      setTasks([res.data, ...tasks]);
-      toast("Tạo thành công");
-    } catch (ex) {
-      toast.error(ex.message);
-    }
-  };
-
   const updateTask = async () => {
     try {
+      setLoading(true);
       let body = {};
       if (taskRef.current.name !== task.name) {
         body.name = task.name;
@@ -101,22 +95,91 @@ function App() {
         return;
       }
       const res = await axios.patch(
-        `http://localhost:8080/task/${task.id}`,
+        `${process.env.REACT_APP_BACKEND_URL}/task/${task.id}`,
         body,
       );
       task.name = res.data.name;
       task.description = res.data.description;
       task.updatedAt = res.data.updatedAt;
-      setTasks([...tasks]);
       toast("Cập nhật thành công");
     } catch (ex) {
       toast.error(ex.message);
     }
+    setLoading(false);
+  };
+
+  const markTaskComplete = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.patch(
+        `${process.env.REACT_APP_BACKEND_URL}/task/${task.id}/mark-complete`,
+      );
+      task.status = res.data.status;
+      const newTask = { ...task };
+      setTask(newTask);
+      taskRef.current = newTask;
+      toast("Đã đánh dấu thành công");
+    } catch (ex) {
+      toast.error(ex.message);
+    }
+    setLoading(false);
+  };
+
+  const markTaskIncomplete = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.patch(
+        `${process.env.REACT_APP_BACKEND_URL}/task/${task.id}/mark-incomplete`,
+      );
+      task.status = res.data.status;
+      const newTask = { ...task };
+      setTask(newTask);
+      taskRef.current = newTask;
+      toast("Đã đánh dấu thành công");
+    } catch (ex) {
+      toast.error(ex.message);
+    }
+    setLoading(false);
+  };
+
+  const getTasks = async () => {
+    try {
+      setTableLoading(true);
+
+      const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/task`, {
+        params: filter,
+      });
+      setTasks(res.data);
+    } catch (ex) {
+      toast.error(ex.message);
+    }
+    setTableLoading(false);
+  };
+
+  const search = async () => {
+    try {
+      setTableLoading(true);
+      const filterParam = {
+        keyword: filter.keyword,
+        statusString: filter.statusString,
+        sortByTime: filter.sortByTime,
+        page: 0,
+      };
+      const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/task`, {
+        params: filterParam,
+      });
+      setFilter(filterParam);
+      setTasks(res.data);
+    } catch (ex) {
+      toast.error(ex.message);
+    }
+    setTableLoading(false);
   };
 
   const deleteTask = async (id) => {
     try {
-      await axios.delete(`http://localhost:8080/task/${id}`);
+      setTableLoading(true);
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/task/${id}`);
       setTasks(tasks.filter((task) => task.id !== id));
       if (task.id === id) {
         const newTask = {};
@@ -127,56 +190,7 @@ function App() {
     } catch (ex) {
       toast.error(ex.message);
     }
-  };
-
-  const markTaskComplete = async () => {
-    try {
-      const res = await axios.patch(
-        `http://localhost:8080/task/${task.id}/mark-complete`,
-      );
-      task.status = res.data.status;
-      setTasks([...tasks]);
-      const newTask = { ...task };
-      setTask(newTask);
-      taskRef.current = newTask;
-      toast("Đã đánh dấu thành công");
-    } catch (ex) {
-      toast.error(ex.message);
-    }
-  };
-
-  const markTaskIncomplete = async () => {
-    try {
-      const res = await axios.patch(
-        `http://localhost:8080/task/${task.id}/mark-incomplete`,
-      );
-      task.status = res.data.status;
-      setTasks([...tasks]);
-      const newTask = { ...task };
-      setTask(newTask);
-      taskRef.current = newTask;
-      toast("Đã đánh dấu thành công");
-    } catch (ex) {
-      toast.error(ex.message);
-    }
-  };
-
-  const search = async () => {
-    try {
-      const filterParam = {
-        keyword: filter.keyword,
-        statusString: filter.statusString,
-        sortByTime: filter.sortByTime,
-        page: 0,
-      };
-      const res = await axios.get("http://localhost:8080/task", {
-        params: filterParam,
-      });
-      setFilter(filterParam);
-      setTasks(res.data);
-    } catch (ex) {
-      toast.error(ex.message);
-    }
+    setTableLoading(false);
   };
 
   useEffect(() => {
@@ -188,53 +202,61 @@ function App() {
       <div className="position-relative">
         <FilterBar setFilter={setFilter} filter={filter} search={search} />
         <div className="w-100 overflow-auto">
-          <table className="table mb-4 table">
-            <thead>
-              <tr>
-                <th scope="col">#</th>
-                <th scope="col">Tên công việc</th>
-                <th scope="col">Mô tả</th>
-                <th scope="col">Ngày tạo</th>
-                <th scope="col">Trạng thái</th>
-                <th scope="col">Xem chi tiết</th>
-                <th scope="col">Xoá</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tasks.map((task) => {
-                return (
-                  <tr key={task.id}>
-                    <th scope="row">{task.id}</th>
-                    <td>{task.name}</td>
-                    <td>{task.description}</td>
-                    <td>{task.createdAt}</td>
-                    <td>{task.status}</td>
-                    <td>
-                      <button
-                        className="btn btn-primary"
-                        onClick={() => {
-                          setTask(task);
-                          taskRef.current = task;
-                        }}
-                      >
-                        Xem chi tiết
-                      </button>
-                    </td>
-                    <td>
-                      <button
-                        className="btn btn-danger"
-                        onClick={() => {
-                          deleteTask(task.id);
-                        }}
-                      >
-                        Xoá
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          {tableLoading ? (
+            <div className="d-flex justify-content-center align-items-center mb-2">
+              <div className="spinner-border" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          ) : (
+            <table className="table mb-4 table">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Tên công việc</th>
+                  <th scope="col">Mô tả</th>
+                  <th scope="col">Ngày tạo</th>
+                  <th scope="col">Trạng thái</th>
+                  <th scope="col">Xem chi tiết</th>
+                  <th scope="col">Xoá</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tasks.map((task) => {
+                  return (
+                    <tr key={task.id}>
+                      <th scope="row">{task.id}</th>
+                      <td>{task.name}</td>
+                      <td>{task.description}</td>
+                      <td>{task.createdAt}</td>
+                      <td>{task.status}</td>
+                      <td>
+                        <button
+                          className="btn btn-primary"
+                          onClick={() => {
+                            setTask(task);
+                            taskRef.current = task;
+                          }}
+                        >
+                          Xem chi tiết
+                        </button>
+                      </td>
+                      <td>
+                        <button
+                          className="btn btn-danger"
+                          onClick={() => {
+                            deleteTask(task.id);
+                          }}
+                        >
+                          Xoá
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
           <div className="d-flex gap-2 justify-content-center mb-2">
             <button
               className="btn btn-primary"
