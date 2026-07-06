@@ -11,7 +11,7 @@ function App() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
-  const callRef = useRef(false);
+  const callRef = useRef(true);
   const [filter, setFilter] = useState({
     statusString: "START",
     sortByTime: true,
