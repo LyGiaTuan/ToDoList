@@ -1,0 +1,14 @@
+.form {
+  max-width: 700px;
+  border-radius: 20px;
+  margin: 0 auto !important;
+  border: 1px solid black;
+}
+
+.table {
+  min-width: 1500px;
+}
+
+.h60 {
+  height: 60px;
+}
