@@ -1,0 +1,15 @@
+- Các bước chạy dự án frontend:
+ - Đứng tại root project truy cập vào folder frontend (cd frontend)
+ - tạo file .env theo mẫu (.env.example) với trường REACT_APP_BACKEND_URL là url của backend
+ - chạy npm i để install các package cần thiết
+ - chạy npm start để chạy code
+
+- Các bước chạy dự án backend:
+ - Đứng tại root project truy cập vào folder backend (cd backend)
+ - tạo file .env theo mẫu (.env.example) với trường: 
+  - SPRING_DATASOURCE_URL là connection string theo chuẩn jdbc
+  - SPRING_DATASOURCE_USERNAME là username để truy cập database
+  - SPRING_DATASOURCE_PASSWORD là password để xác thực tài khoản
+  - FRONTEND_URL là url của frontend
+ - Chạy file DockerFile để tạo image
+ - Chạy image mới tạo cùng với .env để lên 1 container

@@ -266,7 +266,7 @@ function App() {
               onClick={() => {
                 if (filter.page) {
                   callRef.current = true;
-                  setFilter({ ...filter, page: filter.page - 10 });
+                  setFilter({ ...filter, page: filter.page - 1 });
                 }
               }}
             >
@@ -277,7 +277,7 @@ function App() {
               onClick={() => {
                 if (tasks.length) {
                   callRef.current = true;
-                  setFilter({ ...filter, page: filter.page + 10 });
+                  setFilter({ ...filter, page: filter.page + 1 });
                 }
               }}
             >
