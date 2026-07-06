@@ -79,7 +79,6 @@ const FilterBar = ({ filter, setFilter, search }) => {
                 type="text"
                 className="form-control h60"
                 id="keyword"
-                value={filter.keyword}
                 placeholder={"Từ khoá"}
                 onChange={(e) => {
                   setFilter({ ...filter, keyword: e.target.value });

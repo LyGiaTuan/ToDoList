@@ -201,7 +201,6 @@ function App() {
       <div className="position-relative">
         <FilterBar
           setFilter={(data) => {
-            console.log(data)
             filter.current = data;
           }}
           filter={filter.current}
