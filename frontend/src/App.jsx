@@ -1,6 +1,6 @@
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "./App.css";
 import FilterBar from "./components/FIlterBar";
@@ -11,7 +11,7 @@ function App() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
-  const [filter, setFilter] = useState({
+  const filter = useRef({
     statusString: "START",
     sortByTime: true,
     page: 0,
@@ -142,33 +142,32 @@ function App() {
     setLoading(false);
   };
 
-  const getTasks = async () => {
+  const getTasks = useCallback(async () => {
     try {
       setTableLoading(true);
-
       const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/task`, {
-        params: filter,
+        params: filter.current,
       });
       setTasks(res.data);
     } catch (ex) {
       toast.error(ex.message);
     }
     setTableLoading(false);
-  };
+  }, [setTableLoading, setTasks]);
 
   const search = async () => {
     try {
       setTableLoading(true);
       const filterParam = {
-        keyword: filter.keyword,
-        statusString: filter.statusString,
-        sortByTime: filter.sortByTime,
+        keyword: filter.current.keyword,
+        statusString: filter.current.statusString,
+        sortByTime: filter.current.sortByTime,
         page: 0,
       };
       const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/task`, {
         params: filterParam,
       });
-      setFilter(filterParam);
+      filter.current = filterParam;
       setTasks(res.data);
     } catch (ex) {
       toast.error(ex.message);
@@ -195,12 +194,19 @@ function App() {
 
   useEffect(() => {
     getTasks();
-  }, [filter.page]);
+  }, [getTasks]);
 
   return (
     <>
       <div className="position-relative">
-        <FilterBar setFilter={setFilter} filter={filter} search={search} />
+        <FilterBar
+          setFilter={(data) => {
+            console.log(data)
+            filter.current = data;
+          }}
+          filter={filter.current}
+          search={search}
+        />
         <div className="w-100 overflow-auto">
           {tableLoading ? (
             <div className="d-flex justify-content-center align-items-center mb-2">
@@ -261,8 +267,9 @@ function App() {
             <button
               className="btn btn-primary"
               onClick={() => {
-                if (filter.page) {
-                  setFilter({ ...filter, page: filter.page - 10 });
+                if (filter.current.page) {
+                  filter.current.page -= 10;
+                  getTasks();
                 }
               }}
             >
@@ -272,7 +279,8 @@ function App() {
               className="btn btn-primary"
               onClick={() => {
                 if (tasks.length) {
-                  setFilter({ ...filter, page: filter.page + 10 });
+                  filter.current.page += 10;
+                  getTasks();
                 }
               }}
             >
