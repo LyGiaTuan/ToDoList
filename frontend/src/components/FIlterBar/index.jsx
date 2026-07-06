@@ -89,7 +89,6 @@ const FilterBar = ({ filter, setFilter, search }) => {
               <select
                 className="form-select form-select-lg h60"
                 aria-label=".form-select-lg example"
-                value={filter.statusString}
                 onChange={(event) => {
                   setFilter({ ...filter, statusString: event.target.value });
                 }}
