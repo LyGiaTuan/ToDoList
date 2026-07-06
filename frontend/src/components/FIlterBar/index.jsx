@@ -12,6 +12,7 @@ const FilterBar = ({ filter, setFilter, search }) => {
               type="text"
               className="form-control h60"
               id="keyword"
+              value={filter.keyword}
               placeholder={"Từ khoá"}
               onChange={(e) => {
                 setFilter({ ...filter, keyword: e.target.value });
@@ -22,6 +23,7 @@ const FilterBar = ({ filter, setFilter, search }) => {
             <select
               className="form-select form-select-lg h60"
               aria-label=".form-select-lg example"
+              value={filter.statusString}
               onChange={(event) => {
                 setFilter({ ...filter, statusString: event.target.value });
               }}
@@ -79,6 +81,7 @@ const FilterBar = ({ filter, setFilter, search }) => {
                 type="text"
                 className="form-control h60"
                 id="keyword"
+                value={filter.keyword}
                 placeholder={"Từ khoá"}
                 onChange={(e) => {
                   setFilter({ ...filter, keyword: e.target.value });
@@ -89,6 +92,7 @@ const FilterBar = ({ filter, setFilter, search }) => {
               <select
                 className="form-select form-select-lg h60"
                 aria-label=".form-select-lg example"
+                value={filter.statusString}
                 onChange={(event) => {
                   setFilter({ ...filter, statusString: event.target.value });
                 }}

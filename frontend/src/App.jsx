@@ -11,7 +11,8 @@ function App() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
-  const filter = useRef({
+  const callRef = useRef(false);
+  const [filter, setFilter] = useState({
     statusString: "START",
     sortByTime: true,
     page: 0,
@@ -146,28 +147,28 @@ function App() {
     try {
       setTableLoading(true);
       const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/task`, {
-        params: filter.current,
+        params: filter,
       });
       setTasks(res.data);
     } catch (ex) {
       toast.error(ex.message);
     }
     setTableLoading(false);
-  }, [setTableLoading, setTasks]);
+  }, [filter, setTableLoading, setTasks]);
 
   const search = async () => {
     try {
       setTableLoading(true);
       const filterParam = {
-        keyword: filter.current.keyword,
-        statusString: filter.current.statusString,
-        sortByTime: filter.current.sortByTime,
+        keyword: filter.keyword,
+        statusString: filter.statusString,
+        sortByTime: filter.sortByTime,
         page: 0,
       };
       const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/task`, {
         params: filterParam,
       });
-      filter.current = filterParam;
+      setFilter(filterParam);
       setTasks(res.data);
     } catch (ex) {
       toast.error(ex.message);
@@ -193,19 +194,16 @@ function App() {
   };
 
   useEffect(() => {
-    getTasks();
+    if (callRef.current) {
+      getTasks();
+    }
+    callRef.current = false;
   }, [getTasks]);
 
   return (
     <>
       <div className="position-relative">
-        <FilterBar
-          setFilter={(data) => {
-            filter.current = data;
-          }}
-          filter={filter.current}
-          search={search}
-        />
+        <FilterBar setFilter={setFilter} filter={filter} search={search} />
         <div className="w-100 overflow-auto">
           {tableLoading ? (
             <div className="d-flex justify-content-center align-items-center mb-2">
@@ -266,9 +264,9 @@ function App() {
             <button
               className="btn btn-primary"
               onClick={() => {
-                if (filter.current.page) {
-                  filter.current.page -= 10;
-                  getTasks();
+                if (filter.page) {
+                  callRef.current = true;
+                  setFilter({ ...filter, page: filter.page - 10 });
                 }
               }}
             >
@@ -278,8 +276,8 @@ function App() {
               className="btn btn-primary"
               onClick={() => {
                 if (tasks.length) {
-                  filter.current.page += 10;
-                  getTasks();
+                  callRef.current = true;
+                  setFilter({ ...filter, page: filter.page + 10 });
                 }
               }}
             >
